@@ -1,0 +1,7 @@
+{
+  "name": "El Profe UT",
+  "description": "An interactive web application that uses AI to generate mathematics problems and provide step-by-step solutions, helping users practice and learn various math concepts at different difficulty levels.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

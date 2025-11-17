@@ -1,0 +1,67 @@
+/* Fireworks */
+.pyro > .before, .pyro > .after {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  box-shadow: -120px -218.66667px blue, 248px -16.66667px cyan, 190px 16.33333px green, -113px -308.66667px red, -199px -320.66667px #ff0, -118px -38.66667px #f0f, 144px -212.66667px #ff0, -243px -350.66667px #ff0, 244px -235.66667px #ff0, -134px -34.66667px #f0f, -142px -206.66667px #ff0, 166px -215.66667px #0f0, -212px -30.66667px #00f, 43px -186.66667px #ff0, 10px -31.66667px #f0f, -100px -183.66667px #0ff, 143px -147.66667px #f0f, -242px -24.66667px #0f0, -154px -137.66667px #0f0, -10px -216.66667px #0ff, -184px -128.66667px #f0f, 194px -341.66667px #f0f, -245px -142.66667px #0ff, 213px -303.66667px #ff0, 112px -19.66667px #ff0, -131px -191.66667px #f0f, -208px -338.66667px #0f0, -18px -348.66667px #0f0, 137px -139.66667px #f0f;
+  animation: 1s bang ease-out infinite backwards, 1s gravity ease-in infinite backwards, 5s position linear infinite backwards;
+  z-index: 100;
+}
+
+.pyro > .after {
+  animation-delay: 1.25s, 1.25s, 1.25s;
+  animation-duration: 1.25s, 1.25s, 6.25s;
+}
+
+@keyframes bang {
+  from {
+    box-shadow: 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white, 0 0 white;
+  }
+}
+@keyframes gravity {
+  to {
+    transform: translateY(200px);
+    opacity: 0;
+  }
+}
+@keyframes position {
+  0%, 19.9% {
+    margin-top: 10%;
+    margin-left: 40%;
+  }
+  20%, 39.9% {
+    margin-top: 40%;
+    margin-left: 30%;
+  }
+  40%, 59.9% {
+    margin-top: 20%;
+    margin-left: 70%;
+  }
+  60%, 79.9% {
+    margin-top: 30%;
+    margin-left: 20%;
+  }
+  80%, 99.9% {
+    margin-top: 30%;
+    margin-left: 80%;
+  }
+}
+
+
+/* Confetti */
+@keyframes confetti-fall {
+  0% { transform: translateY(-10vh) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(calc(var(--angle) * 1deg)) scale(0.8); opacity: 0; }
+}
+
+.confetti {
+  position: absolute;
+  top: 0;
+  left: calc(var(--x) * 100vw);
+  width: calc(var(--size) * 1px);
+  height: calc(var(--size) * 0.5px);
+  background-color: hsl(var(--hue), 90%, 60%);
+  animation: confetti-fall calc(var(--duration) * 1s) calc(var(--delay) * 1s) linear infinite;
+  opacity: 0;
+}
