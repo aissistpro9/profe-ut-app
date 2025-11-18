@@ -90,7 +90,12 @@ const LearnModule: React.FC = () => {
         </div>
       )}
 
-      {isLoading && <div className="mt-6 flex justify-center"><LoadingSpinner /></div>}
+      {isLoading && (
+        <div className="mt-6 flex flex-col items-center justify-center">
+            <LoadingSpinner />
+            <p className="text-gray-600 mt-3 animate-pulse">Creando una explicación personalizada para ti...</p>
+        </div>
+      )}
 
       {explanation && (
         <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mt-6 animate-fade-in">
@@ -106,7 +111,12 @@ const LearnModule: React.FC = () => {
           <h3 className="text-xl font-semibold text-gray-800 mb-4">
             Videos para potenciar tu aprendizaje
           </h3>
-          {isLoadingVideos && <div className="flex justify-center"><LoadingSpinner /></div>}
+          {isLoadingVideos && (
+             <div className="flex flex-col items-center justify-center py-4">
+                <LoadingSpinner />
+                <p className="text-gray-500 mt-2">Buscando videos recomendados...</p>
+             </div>
+          )}
           
           {!isLoadingVideos && (
             <div>
@@ -132,7 +142,7 @@ const LearnModule: React.FC = () => {
                       </button>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {videos.map((video) => (
                         <div 
                           key={video.videoId} 

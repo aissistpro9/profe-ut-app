@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Module } from '../components/Navigation';
+import { Module } from '../modules';
 import BookOpenIcon from '../components/icons/BookOpenIcon';
 import CameraIcon from '../components/icons/CameraIcon';
 import DumbbellIcon from '../components/icons/DumbbellIcon';
@@ -11,7 +10,6 @@ interface HomeModuleProps {
 }
 
 interface ModuleCardProps {
-  // FIX: Specify that the icon prop is a ReactElement that accepts a className prop. This resolves the type error with React.cloneElement below.
   icon: React.ReactElement<{ className?: string }>;
   title: string;
   description: string;

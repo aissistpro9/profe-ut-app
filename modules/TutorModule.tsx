@@ -13,11 +13,22 @@ const TutorModule: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentInput, setCurrentInput] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [initializationError, setInitializationError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setChat(createTutorChat());
-    setMessages([{ sender: 'ai', text: '¡Hola! Soy ProfeIA. ¿En qué te puedo ayudar hoy? ¡Pilas pues!' }]);
+    const initChat = async () => {
+        try {
+            const newChat = createTutorChat();
+            setChat(newChat);
+            setMessages([{ sender: 'ai', text: '¡Hola! Soy ProfeIA. ¿En qué te puedo ayudar hoy? ¡Pilas pues!' }]);
+        } catch (error) {
+            console.error("Error initializing chat:", error);
+            setInitializationError("No se pudo conectar con el Tutor IA. Por favor verifica tu conexión o la clave de API.");
+            setMessages([{ sender: 'ai', text: 'Error de conexión. No puedo responder en este momento.' }]);
+        }
+    };
+    initChat();
   }, []);
 
   const scrollToBottom = () => {
@@ -54,7 +65,7 @@ const TutorModule: React.FC = () => {
 
     } catch (error) {
       console.error(error);
-      setMessages(prev => [...prev, { sender: 'ai', text: 'Lo siento, tuve un problema para procesar tu mensaje.' }]);
+      setMessages(prev => [...prev, { sender: 'ai', text: 'Lo siento, tuve un problema para procesar tu mensaje. Intenta de nuevo.' }]);
     } finally {
       setIsLoading(false);
     }
@@ -81,13 +92,13 @@ const TutorModule: React.FC = () => {
           type="text"
           value={currentInput}
           onChange={(e) => setCurrentInput(e.target.value)}
-          placeholder="Escribe tu pregunta aquí..."
-          disabled={isLoading}
-          className="flex-grow px-4 py-2 bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder={initializationError ? "Chat no disponible" : "Escribe tu pregunta aquí..."}
+          disabled={isLoading || !!initializationError}
+          className="flex-grow px-4 py-2 bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
         />
         <button
           type="submit"
-          disabled={isLoading || !currentInput.trim()}
+          disabled={isLoading || !currentInput.trim() || !!initializationError}
           className="ml-3 bg-blue-600 text-white font-bold p-3 rounded-full hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 disabled:bg-blue-300 disabled:cursor-not-allowed transition"
         >
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>

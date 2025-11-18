@@ -1,6 +1,5 @@
 import React from 'react';
-
-export type Module = 'home' | 'practice' | 'learn' | 'review' | 'tutor';
+import { Module, ModuleConfig } from '../modules';
 
 interface NavButtonProps {
   label: string;
@@ -22,17 +21,8 @@ const NavButton: React.FC<NavButtonProps> = ({ label, icon, isActive, onClick })
   </button>
 );
 
-export interface ModuleConfig {
-  id: Module;
-  label: string;
-  icon: React.ReactNode;
-  // Fix: Use React.ReactElement instead of JSX.Element to resolve "Cannot find namespace 'JSX'" error.
-  component: React.ReactElement;
-}
-
-
 interface NavigationProps {
-  modules: Omit<ModuleConfig, 'component'>[];
+  modules: ModuleConfig[];
   activeModule: Module;
   setActiveModule: (module: Module) => void;
 }

@@ -10,9 +10,13 @@ let ai: GoogleGenAI | null = null;
  */
 function getAi(): GoogleGenAI {
   if (!ai) {
-    // The apiKey is expected to be injected by the environment.
-    // The coding guidelines state to assume `process.env.API_KEY` is pre-configured and valid.
-    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const apiKey = process.env.API_KEY;
+
+    if (!apiKey) {
+        console.error("API_KEY is missing from environment variables.");
+        throw new Error("API Key no configurada. Por favor verifica tu archivo .env o la configuración de Vercel.");
+    }
+    ai = new GoogleGenAI({ apiKey });
   }
   return ai;
 }
@@ -123,7 +127,7 @@ export const generateSolution = async (problem: Problem): Promise<string> => {
 
   try {
     const response = await getAi().models.generateContent({
-      model: 'gemini-2.5-pro',
+      model: 'gemini-3-pro-preview',
       contents: prompt
     });
     return response.text;
@@ -205,28 +209,23 @@ function getFallbackVideos(topic: string): YouTubeVideo[] {
     const fallbackCatalog: Record<string, YouTubeVideo[]> = {
         'derivadas': [
             { videoId: 'lhKoslz5cGU', title: 'Introducción a las Derivadas - El Profe Alex' },
-            { videoId: '5yfh5cf4-0w', title: 'Derivadas: Reglas Básicas - julioprofe' },
-            { videoId: 'XjhE_hbUAno', title: 'Aplicaciones de Derivadas' }
+            { videoId: '5yfh5cf4-0w', title: 'Derivadas: Reglas Básicas - julioprofe' }
         ],
         'límites': [
             { videoId: 'Ej0yAI7OrGA', title: 'Límites: Introducción - El Profe Alex' },
-            { videoId: 'q7hpqhJzDKg', title: 'Límites por Sustitución' },
-            { videoId: '5SRz2r5FNwA', title: 'Límites al Infinito' }
+            { videoId: 'q7hpqhJzDKg', title: 'Límites por Sustitución' }
         ],
         'integrales': [
             { videoId: 'bE6hKfL2fOs', title: 'Integrales Indefinidas - El Profe Alex' },
-            { videoId: 'vXVPmDgUDEo', title: 'Integración por Sustitución' },
-            { videoId: 'xjP_E8bUVxY', title: 'Integrales Definidas' }
+            { videoId: 'vXVPmDgUDEo', title: 'Integración por Sustitución' }
         ],
         'ecuaciones': [
             { videoId: 'Lm7Jxg8yaqc', title: 'Ecuaciones Lineales - El Profe Alex' },
-            { videoId: 'wqUZ3v7NjAQ', title: 'Ecuaciones Cuadráticas' },
-            { videoId: 'uL7M5X-_VXo', title: 'Sistemas de Ecuaciones' }
+            { videoId: 'wqUZ3v7NjAQ', title: 'Ecuaciones Cuadráticas' }
         ],
         'trigonometría': [
             { videoId: 'xhBUtMRGMQk', title: 'Introducción a Trigonometría' },
-            { videoId: 'OJbYnO0D6zg', title: 'Razones Trigonométricas' },
-            { videoId: 'BjHPpD8kQmM', title: 'Identidades Trigonométricas' }
+            { videoId: 'OJbYnO0D6zg', title: 'Razones Trigonométricas' }
         ]
     };
     
@@ -242,8 +241,7 @@ function getFallbackVideos(topic: string): YouTubeVideo[] {
     console.log('Usando videos generales de matemáticas');
     return [
         { videoId: 'lhKoslz5cGU', title: 'Conceptos Matemáticos Fundamentales' },
-        { videoId: 'Ej0yAI7OrGA', title: 'Matemáticas Básicas' },
-        { videoId: 'bE6hKfL2fOs', title: 'Matemáticas Aplicadas' }
+        { videoId: 'Ej0yAI7OrGA', title: 'Matemáticas Básicas' }
     ];
 }
 
@@ -300,11 +298,11 @@ export const searchYoutubeVideos = async (topic: string): Promise<YouTubeVideo[]
     };
 
     const prompt = `
-    Find 3 relevant YouTube videos in SPANISH to help someone learn about the math topic: "${topic}".
-    Prioritize videos from educational channels, especially "El Profe Alex" if possible.
-    The videos should be tutorials, explanations, or solved exercises.
+    Find 2 highly popular and verified YouTube videos in SPANISH to help someone learn about the math topic: "${topic}".
+    Prioritize videos from "El Profe Alex", "Julioprofe", or "Matemáticas profe Alex".
+    The videos MUST be valid and currently available.
     Respond ONLY with a JSON array that adheres to the provided schema.
-    For each video, provide only the videoId and title.
+    For each video, provide only the videoId (11 characters) and title.
     `;
 
     try {
@@ -334,7 +332,7 @@ export const searchYoutubeVideos = async (topic: string): Promise<YouTubeVideo[]
                 return null;
             })
             .filter((v): v is YouTubeVideo => v !== null)
-            .slice(0, 3);
+            .slice(0, 2);
             
         if (videos.length === 0) {
             console.log("No valid videos found from Gemini, using fallback.");
