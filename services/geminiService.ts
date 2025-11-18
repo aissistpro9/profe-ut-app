@@ -10,11 +10,13 @@ let ai: GoogleGenAI | null = null;
  */
 function getAi(): GoogleGenAI {
   if (!ai) {
-    const apiKey = process.env.API_KEY;
+    // Intentamos obtener la clave de varias fuentes para máxima compatibilidad (Local vs Producción/Vercel)
+    // Usamos 'as any' para evitar errores de TypeScript si los tipos de Vite no están configurados
+    const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || process.env.API_KEY;
 
     if (!apiKey) {
-        console.error("API_KEY is missing from environment variables.");
-        throw new Error("API Key no configurada. Por favor verifica tu archivo .env o la configuración de Vercel.");
+        console.error("API_KEY is missing. Checked import.meta.env.VITE_GEMINI_API_KEY and process.env.API_KEY");
+        throw new Error("Error de Configuración: API Key no encontrada. En Vercel, asegúrate de llamar a la variable 'VITE_GEMINI_API_KEY'.");
     }
     ai = new GoogleGenAI({ apiKey });
   }
@@ -109,10 +111,8 @@ export const generateProblems = async (topic: string, difficulty: Difficulty, co
 
   } catch (error) {
     console.error("Error generating problem:", error);
-     if (error instanceof Error && error.message.includes("incompleto")) {
-        throw error;
-    }
-    throw new Error("No se pudo generar un problema. La IA podría no estar disponible o la solicitud es inválida.");
+    // Rethrow the original error to preserve the message (e.g. API Key missing)
+    throw error instanceof Error ? error : new Error("No se pudo generar un problema. La IA podría no estar disponible.");
   }
 };
 
@@ -133,7 +133,7 @@ export const generateSolution = async (problem: Problem): Promise<string> => {
     return response.text;
   } catch (error) {
     console.error("Error generating solution:", error);
-    throw new Error("Failed to generate a solution. Please try again.");
+    throw error instanceof Error ? error : new Error("Failed to generate a solution.");
   }
 };
 
@@ -147,7 +147,7 @@ export const getSimpleExplanation = async (topic: string): Promise<string> => {
         return response.text;
     } catch (error) {
         console.error("Error generating explanation:", error);
-        throw new Error("Failed to generate an explanation.");
+        throw error instanceof Error ? error : new Error("Failed to generate an explanation.");
     }
 };
 
@@ -184,7 +184,7 @@ export const reviewHomework = async (imageData: string, mimeType: string, proble
         return response.text;
     } catch (error) {
         console.error("Error reviewing homework:", error);
-        throw new Error("Failed to review homework.");
+        throw error instanceof Error ? error : new Error("Failed to review homework.");
     }
 };
 
