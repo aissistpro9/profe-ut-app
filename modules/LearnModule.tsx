@@ -124,22 +124,35 @@ const LearnModule: React.FC = () => {
                 <div>
                   {selectedVideoId ? (
                     <div className="space-y-4">
-                      <div className="w-full aspect-video bg-black rounded-lg">
+                      <div className="w-full aspect-video bg-black rounded-lg overflow-hidden shadow-inner">
                          <iframe
                             src={`https://www.youtube.com/embed/${selectedVideoId}?autoplay=1`}
                             title="YouTube video player"
                             frameBorder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
-                            className="w-full h-full rounded-lg"
+                            className="w-full h-full"
                           ></iframe>
                       </div>
-                      <button 
-                        onClick={() => setSelectedVideoId(null)}
-                        className="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition"
-                      >
-                        ← Volver a la lista
-                      </button>
+                      <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+                        <button 
+                          onClick={() => setSelectedVideoId(null)}
+                          className="w-full sm:w-auto bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition flex items-center justify-center"
+                        >
+                          ← Volver a la lista
+                        </button>
+                        <a 
+                          href={`https://www.youtube.com/watch?v=${selectedVideoId}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="w-full sm:w-auto flex items-center justify-center text-blue-600 hover:text-blue-800 font-semibold py-2 px-4 transition hover:bg-blue-50 rounded-lg"
+                        >
+                          Ver en YouTube 
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </a>
+                      </div>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

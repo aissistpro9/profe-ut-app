@@ -226,6 +226,18 @@ function getFallbackVideos(topic: string): YouTubeVideo[] {
         'trigonometría': [
             { videoId: 'xhBUtMRGMQk', title: 'Introducción a Trigonometría' },
             { videoId: 'OJbYnO0D6zg', title: 'Razones Trigonométricas' }
+        ],
+         'pitágoras': [
+            { videoId: '2yfkEAt2ew0', title: 'Teorema de Pitágoras - Super Fácil' },
+            { videoId: 'eR24z7iXkwo', title: 'Teorema de Pitágoras - Ejemplos' }
+        ],
+        'fracciones': [
+            { videoId: 'tNxHXYqhXnE', title: 'Suma de Fracciones' },
+            { videoId: 'LgMptyzudXU', title: 'Resta de Fracciones' }
+        ],
+        'algebra': [
+            { videoId: 'L5tD72W5e8w', title: 'Introducción al Álgebra' },
+            { videoId: 'UNWFLuUfiX4', title: 'Lenguaje Algebraico' }
         ]
     };
     
@@ -276,7 +288,45 @@ const extractVideoId = (url: string): string => {
     return '';
 };
 
+/**
+ * Searches for YouTube videos using the official YouTube Data API v3 if available.
+ * Falls back to Gemini generation if the API key is missing or the quota is exceeded.
+ */
 export const searchYoutubeVideos = async (topic: string): Promise<YouTubeVideo[]> => {
+    // 1. Intentar usar la API oficial de YouTube si existe la clave
+    const YOUTUBE_API_KEY = (import.meta as any).env?.VITE_YOUTUBE_API_KEY || process.env.YOUTUBE_API_KEY;
+
+    if (YOUTUBE_API_KEY) {
+        try {
+            console.log("Buscando videos con YouTube API v3...");
+            // videoEmbeddable=true es CRÍTICO para evitar el error "Video no disponible"
+            const query = encodeURIComponent(`${topic} matemáticas explicación`);
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=2&q=${query}&type=video&videoEmbeddable=true&key=${YOUTUBE_API_KEY}`;
+            
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (response.ok && data.items) {
+                const videos = data.items.map((item: any) => ({
+                    videoId: item.id.videoId,
+                    title: item.snippet.title
+                }));
+                
+                if (videos.length > 0) {
+                    return videos;
+                }
+            } else {
+                console.warn("YouTube API devolvió error o sin resultados:", data);
+            }
+        } catch (error) {
+            console.error("Error conectando con YouTube API:", error);
+            // Continuamos al fallback de Gemini
+        }
+    } else {
+        console.log("YouTube API Key no encontrada, usando Gemini como fallback.");
+    }
+
+    // 2. Fallback: Usar Gemini para "adivinar" videos populares (Método antiguo)
     const videoSchema = {
         type: Type.OBJECT,
         properties: {
