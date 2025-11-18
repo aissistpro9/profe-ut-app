@@ -37,6 +37,28 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           if (containerRef.current) {
             containerRef.current.innerHTML = renderedHtml;
 
+            // Handle broken images gracefully
+            const images = containerRef.current.querySelectorAll('img');
+            images.forEach(img => {
+                img.onerror = () => {
+                    const errorContainer = document.createElement('div');
+                    errorContainer.className = 'p-3 my-2 bg-yellow-50 border border-yellow-300 rounded-md text-center text-sm';
+                    
+                    const errorText = document.createElement('p');
+                    errorText.textContent = '⚠️ No se pudo cargar una imagen en esta explicación.';
+                    errorText.className = 'text-yellow-800 font-semibold';
+                    
+                    const errorSubText = document.createElement('p');
+                    errorSubText.textContent = 'A veces, las imágenes sugeridas por la IA no están disponibles. Puedes continuar con la lectura.';
+                    errorSubText.className = 'text-yellow-700 mt-1';
+                    
+                    errorContainer.appendChild(errorText);
+                    errorContainer.appendChild(errorSubText);
+                    
+                    img.parentNode?.replaceChild(errorContainer, img);
+                };
+            });
+
             // Only process for KaTeX if math is explicitly enabled
             if (enableMath && window.katex) {
               const renderMathInElement = (elem: HTMLElement) => {

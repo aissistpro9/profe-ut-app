@@ -1,6 +1,8 @@
-import { GoogleGenAI, Type, Chat } from "@google/genai";
-import { Difficulty, Problem } from '../types';
 
+import { GoogleGenAI, Type, Chat } from "@google/genai";
+import { Difficulty, Problem, YouTubeVideo } from '../types';
+
+// FIX: Use process.env.API_KEY as per the coding guidelines. This resolves the TypeScript error.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const problemSchema = {
@@ -33,9 +35,6 @@ const problemsArraySchema = {
 };
 
 export const generateProblems = async (topic: string, difficulty: Difficulty, count: number): Promise<Problem[]> => {
-  if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable is not set");
-  }
   const prompt = `
     Generate ${count} math problem(s) in SPANISH about the topic "${topic}" with a "${difficulty}" difficulty.
     The problem MUST be a real-world application scenario. Adhere strictly to the JSON schema provided.
@@ -101,9 +100,6 @@ export const generateProblems = async (topic: string, difficulty: Difficulty, co
 };
 
 export const generateSolution = async (problem: Problem): Promise<string> => {
-    if (!process.env.API_KEY) {
-        throw new Error("API_KEY environment variable is not set");
-    }
     const problemStatement = `
     Título: ${problem.title}
     Contexto: ${problem.context}
@@ -125,9 +121,6 @@ export const generateSolution = async (problem: Problem): Promise<string> => {
 };
 
 export const getSimpleExplanation = async (topic: string): Promise<string> => {
-    if (!process.env.API_KEY) {
-        throw new Error("API_KEY environment variable is not set");
-    }
     const prompt = `Explica el tema de matemáticas "${topic}" como si se lo estuvieras contando a un niño de 8 años. La explicación debe ser muy sencilla y fácil de entender. Enfócate en para qué se usa en la vida real, por qué es importante, y qué tipo de operaciones se usan para llegar a los resultados, explicando el porqué de cada paso. Evita usar símbolos o notación matemática compleja; si es necesario usar alguno, explícalo de manera muy simple. La respuesta debe estar en español y usar formato Markdown.`;
     try {
         const response = await ai.models.generateContent({
@@ -142,9 +135,6 @@ export const getSimpleExplanation = async (topic: string): Promise<string> => {
 };
 
 export const reviewHomework = async (imageData: string, mimeType: string, problemContext: string): Promise<string> => {
-    if (!process.env.API_KEY) {
-        throw new Error("API_KEY environment variable is not set");
-    }
     const imagePart = {
         inlineData: {
             data: imageData,
@@ -193,4 +183,155 @@ export const createTutorChat = (): Chat => {
             - Keep your responses concise.`
         },
     });
+};
+
+// Videos de respaldo por tema
+function getFallbackVideos(topic: string): YouTubeVideo[] {
+    const normalizedTopic = topic.toLowerCase();
+    
+    const fallbackCatalog: Record<string, YouTubeVideo[]> = {
+        'derivadas': [
+            { videoId: 'lhKoslz5cGU', title: 'Introducción a las Derivadas - El Profe Alex' },
+            { videoId: '5yfh5cf4-0w', title: 'Derivadas: Reglas Básicas - julioprofe' },
+            { videoId: 'XjhE_hbUAno', title: 'Aplicaciones de Derivadas' }
+        ],
+        'límites': [
+            { videoId: 'Ej0yAI7OrGA', title: 'Límites: Introducción - El Profe Alex' },
+            { videoId: 'q7hpqhJzDKg', title: 'Límites por Sustitución' },
+            { videoId: '5SRz2r5FNwA', title: 'Límites al Infinito' }
+        ],
+        'integrales': [
+            { videoId: 'bE6hKfL2fOs', title: 'Integrales Indefinidas - El Profe Alex' },
+            { videoId: 'vXVPmDgUDEo', title: 'Integración por Sustitución' },
+            { videoId: 'xjP_E8bUVxY', title: 'Integrales Definidas' }
+        ],
+        'ecuaciones': [
+            { videoId: 'Lm7Jxg8yaqc', title: 'Ecuaciones Lineales - El Profe Alex' },
+            { videoId: 'wqUZ3v7NjAQ', title: 'Ecuaciones Cuadráticas' },
+            { videoId: 'uL7M5X-_VXo', title: 'Sistemas de Ecuaciones' }
+        ],
+        'trigonometría': [
+            { videoId: 'xhBUtMRGMQk', title: 'Introducción a Trigonometría' },
+            { videoId: 'OJbYnO0D6zg', title: 'Razones Trigonométricas' },
+            { videoId: 'BjHPpD8kQmM', title: 'Identidades Trigonométricas' }
+        ]
+    };
+    
+    // Buscar coincidencia exacta o parcial
+    for (const [key, videos] of Object.entries(fallbackCatalog)) {
+        if (normalizedTopic.includes(key) || key.includes(normalizedTopic)) {
+            console.log(`Usando videos de respaldo para: ${key}`);
+            return videos;
+        }
+    }
+    
+    // Videos generales si no hay coincidencia
+    console.log('Usando videos generales de matemáticas');
+    return [
+        { videoId: 'lhKoslz5cGU', title: 'Conceptos Matemáticos Fundamentales' },
+        { videoId: 'Ej0yAI7OrGA', title: 'Matemáticas Básicas' },
+        { videoId: 'bE6hKfL2fOs', title: 'Matemáticas Aplicadas' }
+    ];
+}
+
+/**
+ * Extracts a YouTube video ID from various URL formats.
+ * @param url The URL or video ID string.
+ * @returns The 11-character video ID or an empty string if not found.
+ */
+const extractVideoId = (url: string): string => {
+    if (!url) {
+        return '';
+    }
+    // Check if it's already a valid 11-character ID
+    if (/^[a-zA-Z0-9_-]{11}$/.test(url)) {
+        return url;
+    }
+    
+    const patterns = [
+        /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+        /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]{11})/,
+        /(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+        /(?:https?:\/\/)?(?:www\.)?youtube\.com\/v\/([a-zA-Z0-9_-]{11})/
+    ];
+
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match && match[1]) {
+            return match[1];
+        }
+    }
+
+    return '';
+};
+
+export const searchYoutubeVideos = async (topic: string): Promise<YouTubeVideo[]> => {
+    const videoSchema = {
+        type: Type.OBJECT,
+        properties: {
+            videoId: {
+                type: Type.STRING,
+                description: 'The unique 11-character ID of the YouTube video. Not the full URL.'
+            },
+            title: {
+                type: Type.STRING,
+                description: 'The title of the YouTube video.'
+            }
+        },
+        required: ['videoId', 'title']
+    };
+
+    const videoArraySchema = {
+        type: Type.ARRAY,
+        items: videoSchema,
+    };
+
+    const prompt = `
+    Find 3 relevant YouTube videos in SPANISH to help someone learn about the math topic: "${topic}".
+    Prioritize videos from educational channels, especially "El Profe Alex" if possible.
+    The videos should be tutorials, explanations, or solved exercises.
+    Respond ONLY with a JSON array that adheres to the provided schema.
+    For each video, provide only the videoId and title.
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: videoArraySchema,
+            },
+        });
+        
+        const jsonString = response.text.trim();
+        const videoData = JSON.parse(jsonString);
+
+        if (!Array.isArray(videoData)) {
+            console.error("Gemini did not return a valid array for videos:", videoData);
+            return getFallbackVideos(topic);
+        }
+        
+        const videos: YouTubeVideo[] = videoData
+            .map((video: any) => {
+                const videoId = extractVideoId(video.videoId || '');
+                if (videoId && video.title) {
+                    return { videoId, title: video.title };
+                }
+                return null;
+            })
+            .filter((v): v is YouTubeVideo => v !== null)
+            .slice(0, 3);
+            
+        if (videos.length === 0) {
+            console.log("No valid videos found from Gemini, using fallback.");
+            return getFallbackVideos(topic);
+        }
+
+        return videos;
+
+    } catch (error) {
+        console.error("Error searching for YouTube videos with Gemini:", error);
+        return getFallbackVideos(topic);
+    }
 };

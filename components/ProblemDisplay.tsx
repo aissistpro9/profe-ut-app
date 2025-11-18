@@ -14,7 +14,7 @@ const ProblemDisplay: React.FC<ProblemDisplayProps> = ({ problem, onShowSolution
   if (!problem) return null;
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mt-6 animate-fade-in">
+    <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mt-6 animate-fade-in transition-transform duration-300 ease-in-out hover:scale-[1.02]">
       <h2 className="text-xl font-bold text-gray-800 mb-2 border-b pb-2">{problem.title}</h2>
       <div className="prose prose-blue max-w-none text-gray-700 my-4">
         <MarkdownRenderer content={problem.context} />

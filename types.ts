@@ -20,3 +20,8 @@ export interface Problem {
   questions: string[];
   answer: string;
 }
+
+export interface YouTubeVideo {
+  title: string;
+  videoId: string;
+}
