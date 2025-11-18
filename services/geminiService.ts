@@ -2,8 +2,21 @@
 import { GoogleGenAI, Type, Chat } from "@google/genai";
 import { Difficulty, Problem, YouTubeVideo } from '../types';
 
-// FIX: Use process.env.API_KEY as per the coding guidelines. This resolves the TypeScript error.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let ai: GoogleGenAI | null = null;
+
+/**
+ * Lazily initializes and returns the GoogleGenAI instance.
+ * This prevents the app from crashing on start if the API key is not immediately available.
+ */
+function getAi(): GoogleGenAI {
+  if (!ai) {
+    // The apiKey is expected to be injected by the environment.
+    // The coding guidelines state to assume `process.env.API_KEY` is pre-configured and valid.
+    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  }
+  return ai;
+}
+
 
 const problemSchema = {
   type: Type.OBJECT,
@@ -59,7 +72,7 @@ export const generateProblems = async (topic: string, difficulty: Difficulty, co
     `;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await getAi().models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
       config: {
@@ -109,7 +122,7 @@ export const generateSolution = async (problem: Problem): Promise<string> => {
   const prompt = `Provide a clear, step-by-step solution for the following math problem. Explain each step thoroughly. Use Markdown for formatting and LaTeX for mathematical expressions (e.g., ... for block and ... for inline). Problem: ${problemStatement}`;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await getAi().models.generateContent({
       model: 'gemini-2.5-pro',
       contents: prompt
     });
@@ -123,7 +136,7 @@ export const generateSolution = async (problem: Problem): Promise<string> => {
 export const getSimpleExplanation = async (topic: string): Promise<string> => {
     const prompt = `Explica el tema de matemáticas "${topic}" como si se lo estuvieras contando a un niño de 8 años. La explicación debe ser muy sencilla y fácil de entender. Enfócate en para qué se usa en la vida real, por qué es importante, y qué tipo de operaciones se usan para llegar a los resultados, explicando el porqué de cada paso. Evita usar símbolos o notación matemática compleja; si es necesario usar alguno, explícalo de manera muy simple. La respuesta debe estar en español y usar formato Markdown.`;
     try {
-        const response = await ai.models.generateContent({
+        const response = await getAi().models.generateContent({
             model: 'gemini-2.5-flash',
             contents: prompt,
         });
@@ -160,7 +173,7 @@ export const reviewHomework = async (imageData: string, mimeType: string, proble
     const textPart = { text: promptText };
 
     try {
-        const response = await ai.models.generateContent({
+        const response = await getAi().models.generateContent({
             model: 'gemini-2.5-flash',
             contents: { parts: [imagePart, textPart] }
         });
@@ -172,7 +185,7 @@ export const reviewHomework = async (imageData: string, mimeType: string, proble
 };
 
 export const createTutorChat = (): Chat => {
-    return ai.chats.create({
+    return getAi().chats.create({
         model: 'gemini-2.5-flash',
         config: {
             systemInstruction: `You are "ProfeIA", a patient and helpful math tutor from Colombia who uses the Socratic method. Your goal is to guide students to find the answers themselves, not to give them the solution directly.
@@ -295,7 +308,7 @@ export const searchYoutubeVideos = async (topic: string): Promise<YouTubeVideo[]
     `;
 
     try {
-        const response = await ai.models.generateContent({
+        const response = await getAi().models.generateContent({
             model: 'gemini-2.5-flash',
             contents: prompt,
             config: {

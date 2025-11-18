@@ -39,7 +39,7 @@ const App: React.FC = () => {
         <p>Potenciado por IA, un desarrollo de Smith Cordoba</p>
       </footer>
       <Navigation 
-        modules={moduleConfigs}
+        modules={moduleConfigs.map(({ id, label, icon }) => ({ id, label, icon }))}
         activeModule={activeModule} 
         setActiveModule={setActiveModule} 
       />
