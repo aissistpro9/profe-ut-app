@@ -17,7 +17,7 @@ const ProblemDisplay: React.FC<ProblemDisplayProps> = ({ problem, onShowSolution
     <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mt-6 animate-fade-in transition-transform duration-300 ease-in-out hover:scale-[1.02]">
       <h2 className="text-xl font-bold text-gray-800 mb-2 border-b pb-2">{problem.title}</h2>
       <div className="prose prose-blue max-w-none text-gray-700 my-4">
-        <MarkdownRenderer content={problem.context} />
+        <MarkdownRenderer content={problem.context} enableMath={true} />
       </div>
       <div className="space-y-3 text-gray-800">
         <h3 className="font-semibold text-lg">Preguntas:</h3>
@@ -26,7 +26,7 @@ const ProblemDisplay: React.FC<ProblemDisplayProps> = ({ problem, onShowSolution
                 <li key={index} className="flex items-start">
                     <span className="font-semibold mr-2">{String.fromCharCode(97 + index)})</span>
                     <div className="flex-1">
-                        <MarkdownRenderer content={q} className="[&_p]:inline" />
+                        <MarkdownRenderer content={q} className="[&_p]:inline" enableMath={true} />
                     </div>
                 </li>
             ))}

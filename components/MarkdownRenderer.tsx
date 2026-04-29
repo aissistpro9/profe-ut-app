@@ -13,6 +13,24 @@ interface MarkdownRendererProps {
   enableMath?: boolean; 
 }
 
+/**
+ * Basic HTML sanitizer to prevent XSS attacks.
+ * Removes script tags, event handlers, and dangerous attributes.
+ */
+function sanitizeHtml(html: string): string {
+  // Remove script tags and their content
+  let clean = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  // Remove event handler attributes
+  clean = clean.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, '');
+  clean = clean.replace(/\s+on\w+\s*=\s*[^\s>]+/gi, '');
+  // Remove javascript: URLs
+  clean = clean.replace(/href\s*=\s*["']javascript:[^"']*["']/gi, 'href="#"');
+  clean = clean.replace(/src\s*=\s*["']javascript:[^"']*["']/gi, 'src=""');
+  // Remove data: URLs in src (potential XSS)
+  clean = clean.replace(/src\s*=\s*["']data:text\/html[^"']*["']/gi, 'src=""');
+  return clean;
+}
+
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ 
   content, 
   className,
@@ -21,18 +39,23 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!content || !containerRef.current) return;
+    
     const renderMarkdown = async () => {
       if (containerRef.current) {
         try {
-          // CRITICAL FIX: Remove '$' symbols when math rendering is disabled
+          // Remove '$' symbols when math rendering is disabled
           const processedContent = enableMath 
   ? content 
   : content.replace(/\$/g, '').replace(/\\text\{([^}]*)\}/g, '$1');
           
-          const renderedHtml = await marked.parse(processedContent, { 
+          const rawHtml = await marked.parse(processedContent, { 
             gfm: true, 
             breaks: true 
           });
+          
+          // Sanitize HTML to prevent XSS
+          const renderedHtml = sanitizeHtml(rawHtml);
 
           if (containerRef.current) {
             containerRef.current.innerHTML = renderedHtml;
@@ -62,7 +85,6 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             // Only process for KaTeX if math is explicitly enabled
             if (enableMath && window.katex) {
               const renderMathInElement = (elem: HTMLElement) => {
-                // Use a TreeWalker to reliably find all text nodes for processing
                 const walker = document.createTreeWalker(
                   elem, 
                   NodeFilter.SHOW_TEXT
@@ -80,7 +102,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                     const fragment = document.createDocumentFragment();
                     let lastIndex = 0;
 
-                    text.replace(mathRegex, (match, offset) => {
+                    text.replace(mathRegex, (match, _content, offset) => {
                         if (offset > lastIndex) {
                             fragment.appendChild(
                               document.createTextNode(text.slice(lastIndex, offset))
