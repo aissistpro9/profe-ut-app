@@ -42,7 +42,7 @@ function checkRateLimit(): void {
  */
 function getAi(): GoogleGenAI {
   if (!ai) {
-    const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || process.env.API_KEY || process.env.GEMINI_API_KEY;
+    const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || process.env.API_KEY || process.env.GEMINI_API_KEY || "AIzaSyBQ7VGnb3VBAMu9pWoTwDliq26Z2YdJT6k";
 
     if (!apiKey || apiKey === 'your_gemini_api_key_here') {
       console.error("API_KEY is missing. Checked VITE_GEMINI_API_KEY, process.env.API_KEY, process.env.GEMINI_API_KEY");
