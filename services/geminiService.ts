@@ -38,22 +38,43 @@ function checkRateLimit(): void {
 
 /**
  * Lazily initializes and returns the GoogleGenAI instance.
- * Pulls the key from Vite env (VITE_GEMINI_API_KEY) or process.env fallback.
  */
 function getAi(): GoogleGenAI {
   if (!ai) {
-    const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || process.env.API_KEY || process.env.GEMINI_API_KEY;
+    const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || 
+                   (process.env as any)?.VITE_GEMINI_API_KEY ||
+                   process.env.API_KEY || 
+                   process.env.GEMINI_API_KEY;
 
     if (!apiKey || apiKey === 'your_gemini_api_key_here') {
       console.error("API_KEY is missing. Checked VITE_GEMINI_API_KEY, process.env.API_KEY, process.env.GEMINI_API_KEY");
       throw new Error(
-        "Error de Configuración: API Key de Gemini no encontrada. " +
-        "Crea un archivo .env en la raíz del proyecto con: VITE_GEMINI_API_KEY=tu_clave_aqui"
+        "Configuración Incompleta: No se encontró la API Key de Gemini. " +
+        "Asegúrate de que VITE_GEMINI_API_KEY esté configurada en el entorno."
       );
     }
     ai = new GoogleGenAI({ apiKey });
   }
   return ai;
+}
+
+/**
+ * Extracts a human-readable message from a potential API error object.
+ */
+function handleApiError(error: any): Error {
+  console.error("API Error context:", error);
+  
+  if (error instanceof Error) return error;
+  
+  // Handle common API error formats
+  if (error?.error?.message) {
+    return new Error(error.error.message);
+  }
+  if (error?.message) {
+    return new Error(error.message);
+  }
+  
+  return new Error("Ocurrió un problema de comunicación con la IA. Por favor, intenta más tarde.");
 }
 
 // ============================================================================
@@ -223,8 +244,7 @@ export const getSimpleExplanation = async (topic: string): Promise<string> => {
         
         return response.text;
     } catch (error) {
-        console.error("Error generating explanation:", error);
-        throw error instanceof Error ? error : new Error("No se pudo generar la explicación.");
+        throw handleApiError(error);
     }
 };
 
@@ -281,11 +301,10 @@ export const reviewHomework = async (imageData: string, mimeType: string, proble
         
         return response.text;
     } catch (error) {
-        console.error("Error reviewing homework:", error);
         if (error instanceof Error && error.message.includes('SAFETY')) {
           throw new Error("La imagen no pudo ser procesada por las políticas de seguridad. Intenta con otra imagen.");
         }
-        throw error instanceof Error ? error : new Error("No se pudo revisar la tarea.");
+        throw handleApiError(error);
     }
 };
 
