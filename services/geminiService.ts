@@ -57,11 +57,11 @@ function getAi(): GoogleGenAI {
 }
 
 // ============================================================================
-// MODEL CONFIGURATION — Gemini 2.5 Flash (paid, fastest)
+// MODEL CONFIGURATION — Gemini 2.0 Flash (latest, fastest)
 // ============================================================================
 
 /** Primary model for all generation tasks */
-const PRIMARY_MODEL = "gemini-2.5-flash";
+const PRIMARY_MODEL = "gemini-2.0-flash";
 
 // ============================================================================
 // PROBLEM GENERATION
