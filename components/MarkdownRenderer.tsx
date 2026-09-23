@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 
 declare global {
     interface Window {
@@ -14,21 +15,30 @@ interface MarkdownRendererProps {
 }
 
 /**
- * Basic HTML sanitizer to prevent XSS attacks.
- * Removes script tags, event handlers, and dangerous attributes.
+ * Strict HTML sanitizer using DOMPurify (industry standard).
+ * Only allows safe Markdown-generated tags and KaTeX rendering elements.
  */
 function sanitizeHtml(html: string): string {
-  // Remove script tags and their content
-  let clean = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-  // Remove event handler attributes
-  clean = clean.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, '');
-  clean = clean.replace(/\s+on\w+\s*=\s*[^\s>]+/gi, '');
-  // Remove javascript: URLs
-  clean = clean.replace(/href\s*=\s*["']javascript:[^"']*["']/gi, 'href="#"');
-  clean = clean.replace(/src\s*=\s*["']javascript:[^"']*["']/gi, 'src=""');
-  // Remove data: URLs in src (potential XSS)
-  clean = clean.replace(/src\s*=\s*["']data:text\/html[^"']*["']/gi, 'src=""');
-  return clean;
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'p', 'br', 'hr',
+      'ul', 'ol', 'li',
+      'strong', 'em', 'b', 'i', 'u', 's', 'del', 'ins',
+      'code', 'pre', 'blockquote',
+      'a', 'img',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td',
+      'span', 'div', 'sup', 'sub',
+    ],
+    ALLOWED_ATTR: [
+      'href', 'src', 'alt', 'title', 'class', 'id',
+      'target', 'rel', 'width', 'height',
+    ],
+    ALLOW_DATA_ATTR: false,
+    ADD_ATTR: ['target'],
+    FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input', 'textarea', 'select', 'button'],
+    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur'],
+  });
 }
 
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ 

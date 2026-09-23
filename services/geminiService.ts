@@ -59,21 +59,30 @@ function getAi(): GoogleGenAI {
 }
 
 /**
- * Extracts a human-readable message from a potential API error object.
+ * Extracts a safe, user-friendly error message.
+ * SECURITY: Never exposes raw API error details, keys, or internal info to the user.
  */
 function handleApiError(error: any): Error {
-  console.error("API Error context:", error);
+  // Log full error server-side for debugging (only visible in console, not in UI)
+  console.error("[ProfeUT Internal] API Error:", error);
   
-  if (error instanceof Error) return error;
+  // Detect specific error types and return safe user-facing messages
+  const rawMessage = error?.error?.message || error?.message || (error instanceof Error ? error.message : '');
   
-  // Handle common API error formats
-  if (error?.error?.message) {
-    return new Error(error.error.message);
+  if (rawMessage.includes('API_KEY_INVALID') || rawMessage.includes('API key not valid')) {
+    return new Error("El servicio de IA no está disponible en este momento. Por favor, contacta al administrador.");
   }
-  if (error?.message) {
-    return new Error(error.message);
+  if (rawMessage.includes('QUOTA') || rawMessage.includes('quota') || rawMessage.includes('429')) {
+    return new Error("Se ha alcanzado el límite de uso del servicio. Intenta de nuevo en unos minutos.");
+  }
+  if (rawMessage.includes('SAFETY') || rawMessage.includes('safety')) {
+    return new Error("El contenido no pudo ser procesado por las políticas de seguridad. Intenta con otra consulta.");
+  }
+  if (rawMessage.includes('fetch') || rawMessage.includes('network') || rawMessage.includes('Failed')) {
+    return new Error("Error de conexión. Verifica tu internet e intenta de nuevo.");
   }
   
+  // Generic safe fallback — never leak raw error
   return new Error("Ocurrió un problema de comunicación con la IA. Por favor, intenta más tarde.");
 }
 
@@ -184,8 +193,8 @@ export const generateProblems = async (topic: string, difficulty: Difficulty, co
     return problems;
 
   } catch (error) {
-    console.error("Error generating problem:", error);
-    throw error instanceof Error ? error : new Error("No se pudo generar un problema. La IA podría no estar disponible.");
+    console.error("[ProfeUT Internal] Error generating problem:", error);
+    throw handleApiError(error);
   }
 };
 
@@ -216,8 +225,8 @@ export const generateSolution = async (problem: Problem): Promise<string> => {
     
     return response.text;
   } catch (error) {
-    console.error("Error generating solution:", error);
-    throw error instanceof Error ? error : new Error("No se pudo generar la solución.");
+    console.error("[ProfeUT Internal] Error generating solution:", error);
+    throw handleApiError(error);
   }
 };
 
