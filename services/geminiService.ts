@@ -1,6 +1,6 @@
-
 import { GoogleGenAI, Type, Chat } from "@google/genai";
 import { Difficulty, Problem, YouTubeVideo } from '../types';
+import { authService } from './authService';
 
 // ============================================================================
 // SECURITY & CONFIGURATION
@@ -27,9 +27,12 @@ const rateLimiter = {
 };
 
 /**
- * Checks rate limit and throws if exceeded.
+ * Checks rate limit and auth status, throws if exceeded or unauthenticated.
  */
 function checkRateLimit(): void {
+  if (!authService.isAuthenticated()) {
+    throw new Error("Acceso denegado: Debes iniciar sesión con una suscripción activa para usar las funciones de IA.");
+  }
   if (!rateLimiter.canMakeRequest()) {
     throw new Error("Has alcanzado el límite de solicitudes. Por favor, espera un momento antes de intentar de nuevo.");
   }
@@ -40,6 +43,9 @@ function checkRateLimit(): void {
  * Lazily initializes and returns the GoogleGenAI instance.
  */
 function getAi(): GoogleGenAI {
+  if (!authService.isAuthenticated()) {
+    throw new Error("Acceso denegado: Se requiere autenticación activa.");
+  }
   if (!ai) {
     const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || 
                    (process.env as any)?.VITE_GEMINI_API_KEY ||
@@ -87,11 +93,11 @@ function handleApiError(error: any): Error {
 }
 
 // ============================================================================
-// MODEL CONFIGURATION — Gemini 2.0 Flash (latest, fastest)
+// MODEL CONFIGURATION — Gemini 2.5 Flash (active, fastest, high-precision)
 // ============================================================================
 
 /** Primary model for all generation tasks */
-const PRIMARY_MODEL = "gemini-2.0-flash";
+const PRIMARY_MODEL = "gemini-2.5-flash";
 
 // ============================================================================
 // PROBLEM GENERATION
