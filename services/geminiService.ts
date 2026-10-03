@@ -93,11 +93,11 @@ function handleApiError(error: any): Error {
 }
 
 // ============================================================================
-// MODEL CONFIGURATION — Gemini 2.5 Flash (active, fastest, high-precision)
+// MODEL CONFIGURATION — Gemini 2.0 Flash (stable, fast, high-precision)
 // ============================================================================
 
 /** Primary model for all generation tasks */
-const PRIMARY_MODEL = "gemini-2.5-flash";
+const PRIMARY_MODEL = "gemini-2.0-flash";
 
 // ============================================================================
 // PROBLEM GENERATION
