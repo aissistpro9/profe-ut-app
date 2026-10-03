@@ -56,7 +56,7 @@ function getAi(): GoogleGenAI {
       console.error("API_KEY is missing. Checked VITE_GEMINI_API_KEY, process.env.API_KEY, process.env.GEMINI_API_KEY");
       throw new Error(
         "Configuración Incompleta: No se encontró la API Key de Gemini. " +
-        "Asegúrate de que VITE_GEMINI_API_KEY esté configurada en el entorno."
+        "Asúgúrate de que VITE_GEMINI_API_KEY esté configurada en el entorno."
       );
     }
     ai = new GoogleGenAI({ apiKey });
@@ -93,11 +93,11 @@ function handleApiError(error: any): Error {
 }
 
 // ============================================================================
-// MODEL CONFIGURATION — Gemini 2.0 Flash (stable, fast, high-precision)
+// MODEL CONFIGURATION — Gemini 2.5 Flash Preview (gemini-3.8-flash)
 // ============================================================================
 
 /** Primary model for all generation tasks */
-const PRIMARY_MODEL = "gemini-2.0-flash";
+const PRIMARY_MODEL = "gemini-2.5-flash-preview-05-20";
 
 // ============================================================================
 // PROBLEM GENERATION
@@ -459,7 +459,6 @@ export const searchYoutubeVideos = async (topic: string): Promise<YouTubeVideo[]
     }
 
     // 2. Fallback: Use Gemini to suggest popular videos
-    // Don't count this against rate limit since it's secondary
     const videoSchema = {
         type: Type.OBJECT,
         properties: {
