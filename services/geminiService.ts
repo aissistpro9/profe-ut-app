@@ -146,7 +146,7 @@ export const generateProblems = async (topic: string, difficulty: Difficulty, co
     EXAMPLE for a "Derivadas" problem:
     {
       "title": "Costo mínimo de mantenimiento de servidores",
-      "context": "Una empresa de software mantiene n servidores. El costo total de mantenimiento mensual (en UM) está dado por la función: C(n) = 50n + \\\\frac{800}{n}",
+      "context": "Una empresa de software mantiene n servidores. El costo total de mantenimiento mensual (en UM) está dado por la función: C(n) = 50n + \\frac{800}{n}",
       "questions": [
         "Determine el número de servidores que minimiza el costo mensual.",
         "Calcule el costo mínimo.",
@@ -410,16 +410,20 @@ const extractVideoId = (url: string): string => {
     // Check if it's already a valid 11-character ID
     if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
     
-    const patterns = [
-        /(?:https?:\\/\\/)?(?:www\\.)?youtube\\.com\\/watch\\?v=([a-zA-Z0-9_-]{11})/,
-        /(?:https?:\\/\\/)?(?:www\\.)?youtu\\.be\\/([a-zA-Z0-9_-]{11})/,
-        /(?:https?:\\/\\/)?(?:www\\.)?youtube\\.com\\/embed\\/([a-zA-Z0-9_-]{11})/,
-        /(?:https?:\\/\\/)?(?:www\\.)?youtube\\.com\\/v\\/([a-zA-Z0-9_-]{11})/
-    ];
-
-    for (const pattern of patterns) {
-        const match = url.match(pattern);
-        if (match?.[1]) return match[1];
+    try {
+        const u = new URL(url.startsWith('http') ? url : `https://${url}`);
+        if (u.hostname.includes('youtube.com')) {
+            const v = u.searchParams.get('v');
+            if (v && v.length === 11) return v;
+            const parts = u.pathname.split('/');
+            const last = parts[parts.length - 1];
+            if (last && last.length === 11) return last;
+        } else if (u.hostname.includes('youtu.be')) {
+            const id = u.pathname.replace('/', '');
+            if (id.length === 11) return id;
+        }
+    } catch {
+        // Fallback simple search
     }
 
     return '';
