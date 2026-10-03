@@ -93,11 +93,11 @@ function handleApiError(error: any): Error {
 }
 
 // ============================================================================
-// MODEL CONFIGURATION — Gemini 2.5 Flash Preview (gemini-3.8-flash)
+// MODEL CONFIGURATION — Gemini 2.0 Flash
 // ============================================================================
 
 /** Primary model for all generation tasks */
-const PRIMARY_MODEL = "gemini-2.5-flash-preview-05-20";
+const PRIMARY_MODEL = "gemini-2.0-flash";
 
 // ============================================================================
 // PROBLEM GENERATION
@@ -136,7 +136,7 @@ export const generateProblems = async (topic: string, difficulty: Difficulty, co
   checkRateLimit();
   
   // Sanitize inputs
-  const safeTopic = topic.replace(/[<>"'&]/g, '').substring(0, 100);
+  const safeTopic = topic.replace(/[<>\"'&]/g, '').substring(0, 100);
   const safeCount = Math.min(Math.max(1, count), 5);
 
   const prompt = `
@@ -243,7 +243,7 @@ export const generateSolution = async (problem: Problem): Promise<string> => {
 export const getSimpleExplanation = async (topic: string): Promise<string> => {
     checkRateLimit();
     
-    const safeTopic = topic.replace(/[<>"'&]/g, '').substring(0, 100);
+    const safeTopic = topic.replace(/[<>\"'&]/g, '').substring(0, 100);
     
     const prompt = `Explica el tema de matemáticas "${safeTopic}" como si se lo estuvieras contando a un niño de 8 años. La explicación debe ser muy sencilla y fácil de entender. Enfócate en para qué se usa en la vida real, por qué es importante, y qué tipo de operaciones se usan para llegar a los resultados, explicando el porqué de cada paso. Evita usar símbolos o notación matemática compleja; si es necesario usar alguno, explícalo de manera muy simple. La respuesta debe estar en español y usar formato Markdown.`;
     
@@ -295,8 +295,7 @@ export const reviewHomework = async (imageData: string, mimeType: string, proble
         
     if (problemContext) {
         promptText = `Eres un tutor de matemáticas amable y motivador. El usuario está intentando resolver el siguiente problema: "${problemContext}".
-        Analiza la solución escrita a mano del usuario en la imagen proporcionada basándote en este contexto.
-        1. Identifica los pasos del usuario.
+        Analiza la solución escrita a mano del usuario en la imagen proporcionada basándote en este contexto.\n        1. Identifica los pasos del usuario.
         2. Si la solución es 100% correcta para el problema dado, responde SOLO con la palabra exacta "CORRECT".
         3. Si hay un error, NO des la respuesta final. En su lugar, proporciona una pista de apoyo y positiva señalando el error específico. Por ejemplo: "¡Vas súper bien! Detecté un pequeño detalle en la línea 3. Revisa el signo que usaste cuando despejaste la 'x'. ¡Ya casi lo tienes!"
         4. Tu retroalimentación debe ser en español.`;
@@ -351,8 +350,7 @@ function getFallbackVideos(topic: string): YouTubeVideo[] {
     const normalizedTopic = topic.toLowerCase();
     
     const fallbackCatalog: Record<string, YouTubeVideo[]> = {
-        'derivadas': [
-            { videoId: 'lhKoslz5cGU', title: 'Introducción a las Derivadas - El Profe Alex' },
+        'derivadas': [\n            { videoId: 'lhKoslz5cGU', title: 'Introducción a las Derivadas - El Profe Alex' },
             { videoId: '5yfh5cf4-0w', title: 'Derivadas: Reglas Básicas - julioprofe' }
         ],
         'límites': [
@@ -411,10 +409,10 @@ const extractVideoId = (url: string): string => {
     if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
     
     const patterns = [
-        /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
-        /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]{11})/,
-        /(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
-        /(?:https?:\/\/)?(?:www\.)?youtube\.com\/v\/([a-zA-Z0-9_-]{11})/
+        /(?:https?:\\/\\/)?(?:www\\.)?youtube\\.com\\/watch\\?v=([a-zA-Z0-9_-]{11})/,
+        /(?:https?:\\/\\/)?(?:www\\.)?youtu\\.be\\/([a-zA-Z0-9_-]{11})/,
+        /(?:https?:\\/\\/)?(?:www\\.)?youtube\\.com\\/embed\\/([a-zA-Z0-9_-]{11})/,
+        /(?:https?:\\/\\/)?(?:www\\.)?youtube\\.com\\/v\\/([a-zA-Z0-9_-]{11})/
     ];
 
     for (const pattern of patterns) {
